@@ -24,7 +24,9 @@ export default class Game extends Phaser.Scene {
     super('game')
   }
 
-  init() {}
+  init() {
+    this.removedRobots = 0
+  }
 
   preload() {
     this.load.image('background', 'assets/background/bg_layer1.jpg')
@@ -33,6 +35,7 @@ export default class Game extends Phaser.Scene {
     this.load.image('robot', 'assets/robot/robot_standing.png')
     this.load.image('zombie', 'assets/zombie/zombie_standing.png')
     this.load.image('adventurer', 'assets/adventurer/adventurer_standing.png')
+    this.load.audio('get-robot', 'assets/sfx/highUp.ogg')
   }
 
   create() {
@@ -41,16 +44,10 @@ export default class Game extends Phaser.Scene {
     this.female = this.physics.add.sprite(140, 320, 'female')
     this.dragCharacters(this.female)
 
-    this.male = this.physics.add.sprite(80, 420, 'male')
-    this.dragCharacters(this.male)
-
-    this.adventure = this.physics.add.sprite(200, 390, 'adventurer')
-    this.dragCharacters(this.adventure)
-
     this.robots = this.physics.add.staticGroup()
 
-    for (let i = 1; i < 20; i++) {
-      const x = Phaser.Math.FloatBetween(0, 900)
+    for (let i = 1; i <= 20; i++) {
+      const x = Phaser.Math.FloatBetween(500, 900)
       const y = Phaser.Math.FloatBetween(0, 500)
 
       /** @type {Phaser.Physics.Arcade.Sprite} */
@@ -80,7 +77,14 @@ export default class Game extends Phaser.Scene {
       .setOrigin(0.5, 0)
   }
 
-  update() {}
+  update() {
+    const totalRobotsNum = this.robots.getChildren().length
+    console.log(totalRobotsNum)
+    console.log(this.removedRobots)
+    if (totalRobotsNum === this.removedRobots) {
+      this.scene.start('game-over')
+    }
+  }
 
   // drag 콜백 함수 정의..
   /**@param {Phaser.GameObjects.Sprite} character  */
@@ -98,9 +102,11 @@ export default class Game extends Phaser.Scene {
    * @param {Phaser.Physics.Arcade.Sprite} robot
    */
   handleKillRobots(player, robot) {
-    console.log('collide')
+    this.sound.play('get-robot')
     this.robots.killAndHide(robot)
-
+    this.removedRobots++
+    const value = `Removed Robots: ${this.removedRobots}`
+    this.removedRobotsNumText.text = value
     this.physics.world.disableBody(robot.body)
   }
 }
